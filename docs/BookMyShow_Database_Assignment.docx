@@ -1,0 +1,493 @@
+# BookMyShow Database Design Assignment
+
+**Database:** MySQL
+**Project:** BookMyShow-like Ticketing Platform
+**Assignment:** Database Design, Normalization and SQL Queries
+
+## 1. Problem Statement
+
+BookMyShow is a ticketing platform where users can book tickets for movie shows.
+
+For a selected theatre, the application displays the next seven dates. When a user selects a particular date, the application displays all movies running in that theatre along with their respective show timings.
+
+The objective of this assignment is to design a relational database for this system, create the required tables and sample data using MySQL, ensure that the database follows 1NF, 2NF, 3NF and BCNF, and write a SQL query to retrieve all shows for a given theatre on a given date.
+
+## 2. Entities
+
+The database consists of the following five main entities:
+
+| Entity  | Description                                       |
+| ------- | ------------------------------------------------- |
+| Theatre | Stores information about theatres.                |
+| Screen  | Stores screens available inside each theatre.     |
+| Seat    | Stores individual seats available on each screen. |
+| Movie   | Stores information about movies.                  |
+| Show    | Stores movie schedules for screens.               |
+
+## 3. Entity Relationships
+
+The relationships between the entities are:
+
+* One Theatre can have many Screens (1:N).
+* One Screen belongs to one Theatre.
+* One Screen can have many Seats (1:N).
+* One Seat belongs to one Screen.
+* One Screen can have many Shows (1:N).
+* One Show runs on one Screen.
+* One Movie can have many Shows (1:N).
+* One Show is associated with one Movie.
+
+The overall relationship can be represented as:
+
+THEATRE
+↓ 1:N
+SCREEN
+├── 1:N → SEAT
+└── 1:N → SHOW ← N:1 → MOVIE
+
+
+## 4. Table Structures
+
+## 4.1 Theatre Table
+
+The `theatre` table stores information about theatres where movies are screened.
+
+| Attribute    | Data Type    | Constraint                  |
+| ------------ | ------------ | --------------------------- |
+| theatre_id   | BIGINT       | Primary Key, Auto Increment |
+| theatre_name | VARCHAR(100) | NOT NULL                    |
+| address      | VARCHAR(255) | NOT NULL                    |
+| city         | VARCHAR(100) | NOT NULL                    |
+| state        | VARCHAR(100) | NOT NULL                    |
+| pincode      | VARCHAR(10)  | NOT NULL                    |
+
+**Primary Key:** `theatre_id`
+
+## 4.2 Screen Table
+
+The `screen` table stores the screens available inside each theatre.
+
+| Attribute   | Data Type   | Constraint                  |
+| ----------- | ----------- | --------------------------- |
+| screen_id   | BIGINT      | Primary Key, Auto Increment |
+| theatre_id  | BIGINT      | Foreign Key                 |
+| screen_name | VARCHAR(50) | NOT NULL                    |
+
+**Primary Key:** `screen_id`
+**Foreign Key:** `theatre_id` references `theatre(theatre_id)`
+
+The combination `(theatre_id, screen_name)` is unique, ensuring that a theatre cannot have two screens with the same name.
+
+## 4.3 Seat Table
+
+The `seat` table stores individual seats available inside each screen.
+
+| Attribute   | Data Type   | Constraint                  |
+| ----------- | ----------- | --------------------------- |
+| seat_id     | BIGINT      | Primary Key, Auto Increment |
+| screen_id   | BIGINT      | Foreign Key                 |
+| seat_row    | VARCHAR(10) | NOT NULL                    |
+| seat_number | INT         | NOT NULL                    |
+| seat_type   | VARCHAR(30) | NOT NULL                    |
+
+**Primary Key:** `seat_id`
+**Foreign Key:** `screen_id` references `screen(screen_id)`
+
+The combination `(screen_id, seat_row, seat_number)` is unique, ensuring that a physical seat position cannot be duplicated within the same screen.
+
+## 4.4 Movie Table
+
+The `movie` table stores information about movies available for shows.
+
+| Attribute        | Data Type    | Constraint                  |
+| ---------------- | ------------ | --------------------------- |
+| movie_id         | BIGINT       | Primary Key, Auto Increment |
+| movie_name       | VARCHAR(200) | NOT NULL                    |
+| duration_minutes | INT          | NOT NULL                    |
+| language         | VARCHAR(50)  | NOT NULL                    |
+| certificate      | VARCHAR(10)  | NOT NULL                    |
+| release_date     | DATE         | NOT NULL                    |
+
+**Primary Key:** `movie_id`
+
+## 4.5 Show Table
+
+The `show` table stores the schedule of movies running on different screens.
+
+| Attribute  | Data Type | Constraint                  |
+| ---------- | --------- | --------------------------- |
+| show_id    | BIGINT    | Primary Key, Auto Increment |
+| screen_id  | BIGINT    | Foreign Key                 |
+| movie_id   | BIGINT    | Foreign Key                 |
+| show_start | DATETIME  | NOT NULL                    |
+| show_end   | DATETIME  | NOT NULL                    |
+
+**Primary Key:** `show_id`
+**Foreign Key:** `screen_id` references `screen(screen_id)`
+**Foreign Key:** `movie_id` references `movie(movie_id)`
+
+The combination `(screen_id, show_start)` is unique, preventing two shows from starting at the same time on the same screen.
+
+
+## 5. Sample Data
+
+## 5.1 Theatre — Sample Data
+
+| theatre_id | theatre_name     | address     | city | state       | pincode |
+| ---------: | ---------------- | ----------- | ---- | ----------- | ------- |
+|          1 | PVR Phoenix Mall | Viman Nagar | Pune | Maharashtra | 411014  |
+|          2 | INOX Amanora     | Hadapsar    | Pune | Maharashtra | 411028  |
+
+## 5.2 Screen — Sample Data
+
+| screen_id | theatre_id | screen_name |
+| --------: | ---------: | ----------- |
+|         1 |          1 | Screen 1    |
+|         2 |          1 | Screen 2    |
+|         3 |          1 | Screen 3    |
+|         4 |          2 | Screen 1    |
+
+## 5.3 Seat — Sample Data
+
+| seat_id | screen_id | seat_row | seat_number | seat_type |
+| ------: | --------: | -------- | ----------: | --------- |
+|       1 |         1 | A        |           1 | REGULAR   |
+|       2 |         1 | A        |           2 | REGULAR   |
+|       3 |         1 | A        |           3 | REGULAR   |
+|       4 |         1 | B        |           1 | PREMIUM   |
+|       5 |         1 | B        |           2 | PREMIUM   |
+|       6 |         2 | A        |           1 | REGULAR   |
+|       7 |         2 | A        |           2 | REGULAR   |
+|       8 |         2 | B        |           1 | RECLINER  |
+|       9 |         2 | B        |           2 | RECLINER  |
+
+## 5.4 Movie — Sample Data
+
+| movie_id | movie_name        | duration_minutes | language | certificate | release_date |
+| -------: | ----------------- | ---------------: | -------- | ----------- | ------------ |
+|        1 | Avengers: Endgame |              181 | English  | U/A         | 2019-04-26   |
+|        2 | Interstellar      |              169 | English  | U/A         | 2014-11-07   |
+|        3 | 3 Idiots          |              170 | Hindi    | U           | 2009-12-25   |
+
+## 5.5 Show — Sample Data
+
+| show_id | screen_id | movie_id | show_start       | show_end         |
+| ------: | --------: | -------: | ---------------- | ---------------- |
+|       1 |         1 |        1 | 2026-09-05 10:00 | 2026-09-05 13:01 |
+|       2 |         1 |        1 | 2026-09-05 14:00 | 2026-09-05 17:01 |
+|       3 |         2 |        2 | 2026-09-05 11:30 | 2026-09-05 14:19 |
+|       4 |         2 |        2 | 2026-09-05 18:30 | 2026-09-05 21:19 |
+|       5 |         3 |        3 | 2026-09-05 15:00 | 2026-09-05 17:50 |
+|       6 |         1 |        3 | 2026-09-06 12:00 | 2026-09-06 14:50 |
+
+## 6. Normalization
+
+## 6.1 First Normal Form (1NF)
+
+The database satisfies First Normal Form (1NF) because:
+
+* Each table has a primary key.
+* Every attribute contains a single atomic value.
+* There are no repeating groups or multi-valued attributes.
+* Multiple seats and shows are stored as separate rows rather than as comma-separated values in a single column.
+
+For example, show timings are stored as individual records in the `show` table instead of storing multiple timings in one field.
+
+## 6.2 Second Normal Form (2NF)
+
+The database satisfies Second Normal Form (2NF) because:
+
+* All tables are in 1NF.
+* There are no partial dependencies.
+* The tables use single-column primary keys.
+* Every non-key attribute depends on the complete primary key of its table.
+
+For example, `movie_name`, `duration_minutes`, `language`, `certificate` and `release_date` depend on `movie_id` and are therefore stored in the `movie` table.
+
+## 6.3 Third Normal Form (3NF)
+
+The database satisfies Third Normal Form (3NF) because:
+
+* It is already in 2NF.
+* There are no transitive dependencies between non-key attributes.
+* Each entity's attributes are stored in its appropriate table.
+
+For example, theatre information such as `theatre_name`, `city`, `state` and `pincode` depends on `theatre_id`. Therefore, these attributes are stored in the `theatre` table rather than being repeated in the `screen` or `show` tables.
+
+Similarly, movie information is stored in the `movie` table and show scheduling information is stored in the `show` table.
+
+## 6.4 Boyce-Codd Normal Form (BCNF)
+
+Under the defined business rules, the database satisfies Boyce-Codd Normal Form (BCNF).
+
+A relation is in BCNF when every determinant is a candidate key or a superkey.
+
+The relevant determinants in this design are:
+
+| Table   | Candidate Key / Determinant                     |
+| ------- | ----------------------------------------------- |
+| Theatre | `theatre_id`                                    |
+| Screen  | `screen_id`, `(theatre_id, screen_name)`        |
+| Seat    | `seat_id`, `(screen_id, seat_row, seat_number)` |
+| Movie   | `movie_id`                                      |
+| Show    | `show_id`, `(screen_id, show_start)`            |
+
+The primary-key and unique constraints ensure that these identifiers uniquely determine the corresponding records.
+
+Therefore, the database design satisfies BCNF under the stated business rules.
+
+
+## 7. P1 SQL: Create Tables
+
+## 7. P1 SQL — Create Tables
+
+The following MySQL SQL statements create the required tables with primary keys, foreign keys, unique constraints and validation constraints.
+
+```sql
+USE bookmyshow_db;
+
+CREATE TABLE theatre (
+    theatre_id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    theatre_name VARCHAR(100) NOT NULL,
+    address VARCHAR(255) NOT NULL,
+    city VARCHAR(100) NOT NULL,
+    state VARCHAR(100) NOT NULL,
+    pincode VARCHAR(10) NOT NULL
+);
+
+CREATE TABLE screen (
+    screen_id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    theatre_id BIGINT NOT NULL,
+    screen_name VARCHAR(50) NOT NULL,
+
+    CONSTRAINT fk_screen_theatre
+        FOREIGN KEY (theatre_id)
+        REFERENCES theatre(theatre_id),
+
+    CONSTRAINT uq_screen_name
+        UNIQUE (theatre_id, screen_name)
+);
+
+CREATE TABLE seat (
+    seat_id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    screen_id BIGINT NOT NULL,
+    seat_row VARCHAR(10) NOT NULL,
+    seat_number INT NOT NULL,
+    seat_type VARCHAR(30) NOT NULL,
+
+    CONSTRAINT fk_seat_screen
+        FOREIGN KEY (screen_id)
+        REFERENCES screen(screen_id),
+
+    CONSTRAINT uq_seat_position
+        UNIQUE (screen_id, seat_row, seat_number),
+
+    CONSTRAINT chk_seat_number
+        CHECK (seat_number > 0)
+);
+
+CREATE TABLE movie (
+    movie_id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    movie_name VARCHAR(200) NOT NULL,
+    duration_minutes INT NOT NULL,
+    language VARCHAR(50) NOT NULL,
+    certificate VARCHAR(10) NOT NULL,
+    release_date DATE NOT NULL,
+
+    CONSTRAINT chk_movie_duration
+        CHECK (duration_minutes > 0)
+);
+
+CREATE TABLE `show` (
+    show_id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    screen_id BIGINT NOT NULL,
+    movie_id BIGINT NOT NULL,
+    show_start DATETIME NOT NULL,
+    show_end DATETIME NOT NULL,
+
+    CONSTRAINT fk_show_screen
+        FOREIGN KEY (screen_id)
+        REFERENCES screen(screen_id),
+
+    CONSTRAINT fk_show_movie
+        FOREIGN KEY (movie_id)
+        REFERENCES movie(movie_id),
+
+    CONSTRAINT chk_show_time
+        CHECK (show_end > show_start),
+
+    CONSTRAINT uq_screen_show_start
+        UNIQUE (screen_id, show_start)
+);
+```
+
+## 8. P1 SQL Insert Sample Data
+
+## 8. P1 – SQL Insert Sample Data
+
+The following SQL statements insert sample records into all five tables: `theatre`, `screen`, `seat`, `movie`, and `show`.
+
+### SQL Script
+
+```sql
+USE bookmyshow_db;
+
+INSERT INTO theatre
+    (theatre_name, address, city, state, pincode)
+VALUES
+    ('PVR Phoenix Mall', 'Viman Nagar', 'Pune', 'Maharashtra', '411014'),
+    ('INOX Amanora', 'Hadapsar', 'Pune', 'Maharashtra', '411028');
+
+INSERT INTO screen
+    (theatre_id, screen_name)
+VALUES
+    (1, 'Screen 1'),
+    (1, 'Screen 2'),
+    (1, 'Screen 3'),
+    (2, 'Screen 1');
+
+INSERT INTO seat
+    (screen_id, seat_row, seat_number, seat_type)
+VALUES
+    (1, 'A', 1, 'REGULAR'),
+    (1, 'A', 2, 'REGULAR'),
+    (1, 'A', 3, 'REGULAR'),
+    (1, 'B', 1, 'PREMIUM'),
+    (1, 'B', 2, 'PREMIUM'),
+    (2, 'A', 1, 'REGULAR'),
+    (2, 'A', 2, 'REGULAR'),
+    (2, 'B', 1, 'RECLINER'),
+    (2, 'B', 2, 'RECLINER');
+
+INSERT INTO movie
+    (movie_name, duration_minutes, language, certificate, release_date)
+VALUES
+    ('Avengers: Endgame', 181, 'English', 'U/A', '2019-04-26'),
+    ('Interstellar', 169, 'English', 'U/A', '2014-11-07'),
+    ('3 Idiots', 170, 'Hindi', 'U', '2009-12-25');
+
+INSERT INTO `show`
+    (screen_id, movie_id, show_start, show_end)
+VALUES
+    (1, 1, '2026-09-05 10:00:00', '2026-09-05 13:01:00'),
+    (1, 1, '2026-09-05 14:00:00', '2026-09-05 17:01:00'),
+    (2, 2, '2026-09-05 11:30:00', '2026-09-05 14:19:00'),
+    (2, 2, '2026-09-05 18:30:00', '2026-09-05 21:19:00'),
+    (3, 3, '2026-09-05 15:00:00', '2026-09-05 17:50:00'),
+    (1, 3, '2026-09-06 12:00:00', '2026-09-06 14:50:00');
+```
+
+The sample data represents multiple theatres, screens, seats, movies, and movie shows. Foreign key relationships are maintained using the corresponding IDs.
+
+
+## 9. P2 – SQL Query to List All Shows for a Theatre on a Given Date
+
+The following SQL query retrieves all movie shows available at a selected theatre on a specified date.
+
+The query displays the theatre name, movie name, screen name, show start time, and show end time.
+
+### SQL Query
+
+```sql
+USE bookmyshow_db;
+
+SELECT
+    t.theatre_name,
+    m.movie_name,
+    s.screen_name,
+    sh.show_start,
+    sh.show_end
+FROM `show` sh
+JOIN screen s
+    ON sh.screen_id = s.screen_id
+JOIN theatre t
+    ON s.theatre_id = t.theatre_id
+JOIN movie m
+    ON sh.movie_id = m.movie_id
+WHERE t.theatre_id = 1
+  AND sh.show_start >= '2026-09-05 00:00:00'
+  AND sh.show_start < '2026-09-06 00:00:00'
+ORDER BY sh.show_start;
+```
+
+### Expected Result
+
+| Theatre          | Movie             | Screen   | Start Time | End Time |
+| ---------------- | ----------------- | -------- | ---------- | -------- |
+| PVR Phoenix Mall | Avengers: Endgame | Screen 1 | 10:00      | 13:01    |
+| PVR Phoenix Mall | Interstellar      | Screen 2 | 11:30      | 14:19    |
+| PVR Phoenix Mall | Avengers: Endgame | Screen 1 | 14:00      | 17:01    |
+| PVR Phoenix Mall | 3 Idiots          | Screen 3 | 15:00      | 17:50    |
+| PVR Phoenix Mall | Interstellar      | Screen 2 | 18:30      | 21:19    |
+
+### Query Explanation
+
+The query joins the `show`, `screen`, `theatre`, and `movie` tables using their foreign-key relationships.
+
+The `WHERE` clause filters the results for theatre ID `1` and the selected date, `2026-09-05`.
+
+The results are sorted by `show_start` so that shows are displayed chronologically, similar to how show timings would be displayed in a ticket-booking application.
+
+
+## 10. Normalization Summary
+
+The database design follows the principles of database normalization to reduce data redundancy and maintain data integrity.
+
+### 10.1 First Normal Form (1NF)
+
+All tables satisfy 1NF because:
+
+* Each table has a primary key.
+* All attributes contain atomic values.
+* There are no repeating groups or multi-valued attributes.
+* Multiple seats and shows are stored as separate records.
+
+### 10.2 Second Normal Form (2NF)
+
+All tables satisfy 2NF because:
+
+* The tables are already in 1NF.
+* Each table uses a single-column primary key.
+* Every non-key attribute depends on the complete primary key.
+* There are no partial dependencies.
+
+### 10.3 Third Normal Form (3NF)
+
+All tables satisfy 3NF because:
+
+* The tables are already in 2NF.
+* There are no transitive dependencies between non-key attributes.
+* Theatre information is stored only in the `theatre` table.
+* Screen information is stored only in the `screen` table.
+* Seat information is stored only in the `seat` table.
+* Movie information is stored only in the `movie` table.
+* Show scheduling information is stored only in the `show` table.
+
+### 10.4 Boyce-Codd Normal Form (BCNF)
+
+The tables satisfy BCNF under the defined business rules because every determinant is a candidate key or a superkey.
+
+The important candidate keys are:
+
+| Table   | Candidate Key / Determinant                         |
+| ------- | --------------------------------------------------- |
+| Theatre | `theatre_id`                                        |
+| Screen  | `screen_id`, (`theatre_id`, `screen_name`)          |
+| Seat    | `seat_id`, (`screen_id`, `seat_row`, `seat_number`) |
+| Movie   | `movie_id`                                          |
+| Show    | `show_id`, (`screen_id`, `show_start`)              |
+
+Therefore, the database design satisfies the required normalization levels: **1NF, 2NF, 3NF, and BCNF**.
+
+
+## 11. Conclusion
+
+The BookMyShow-like ticketing database has been designed using a relational database approach in MySQL.
+
+The database consists of five main tables: `theatre`, `screen`, `seat`, `movie`, and `show`. Primary keys and foreign keys are used to establish relationships and maintain referential integrity.
+
+The database design follows **1NF, 2NF, 3NF, and BCNF** principles to minimize redundancy and maintain data consistency.
+
+The required SQL scripts have been created for database creation, table creation, sample data insertion, and retrieving all movie shows for a selected theatre and date.
+
+The final design provides a structured foundation for displaying theatres, screens, movies, and show timings in a BookMyShow-like application.
