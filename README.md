@@ -253,3 +253,7 @@ For theatre ID `1` on `2026-09-05`, the query returns shows such as:
 ## Conclusion
 
 This project provides a normalized MySQL database design for a BookMyShow-like ticketing platform. The schema maintains relationships between theatres, screens, seats, movies, and shows while ensuring data integrity and reducing redundancy.
+
+## Author
+
+Kshitij Dhawane
